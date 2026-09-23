@@ -1,0 +1,58 @@
+# Git hooks managed by pre-commit (https://pre-commit.com).
+#   Install once per clone:  uv run pre-commit install
+#   Run on all files:        uv run pre-commit run --all-files
+# Ruff, mypy and the lock check run through `uv run`, so they use the versions
+# pinned in uv.lock - the same ones CI uses.
+minimum_pre_commit_version: "4.4.0" # for `language: unsupported`
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-illegal-windows-names
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: \.(bat|cmd|ps1)$ # CRLF on purpose, see .gitattributes
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  # Validate CI and dependency-bot configuration against their JSON schemas.
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.0
+    hooks:
+      - id: check-dependabot
+      - id: check-github-workflows
+      - id: check-gitlab-ci
+      - id: check-renovate
+
+  - repo: local
+    hooks:
+      - id: uv-lock
+        name: uv lock --check
+        entry: uv lock --check
+        language: unsupported
+        files: ^(pyproject\.toml|uv\.lock)$
+        pass_filenames: false
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --frozen ruff check --fix --force-exclude
+        language: unsupported
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --frozen ruff format --force-exclude
+        language: unsupported
+        types_or: [python, pyi, markdown]
+      - id: mypy
+        name: mypy
+        entry: uv run --frozen mypy
+        language: unsupported
+        types_or: [python, pyi]
+        pass_filenames: false

@@ -1,0 +1,35 @@
+# Dependabot keeps dependencies up to date on GitHub; on GitLab, Renovate does
+# this (see renovate.json). Updates are grouped into one pull request per
+# ecosystem and wait out a one-week cooldown, matching `exclude-newer` in
+# pyproject.toml.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      python-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      pre-commit-hooks:
+        patterns: ["*"]

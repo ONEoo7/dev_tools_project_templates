@@ -1,0 +1,28 @@
+# Store text files with LF line endings in the repository and check them out
+# with LF on every platform (Ruff formats with LF, see pyproject.toml).
+* text=auto eol=lf
+
+# Language-aware diffs (better hunk headers)
+*.py    text diff=python
+*.pyi   text diff=python
+*.md    text diff=markdown
+
+# Windows-only scripts need CRLF
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary files: never normalize line endings or show textual diffs
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.whl   binary
+
+# Generated files: collapsed in GitHub diffs
+uv.lock linguist-generated=true

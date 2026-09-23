@@ -1,0 +1,150 @@
+# Packaging metadata and tool configuration for the project.
+# Specification: https://packaging.python.org/en/latest/specifications/pyproject-toml/
+
+# --- Build system (PEP 517 / PEP 518) ----------------------------------------
+# uv's own backend, the default of `uv init`. uv asks for an upper bound because
+# minor releases may break it: bump `<0.13` when uv 0.13 ships (Renovate does
+# this together with UV_VERSION in .gitlab-ci.yml). Any other PEP 517 backend
+# works as well, e.g. requires = ["hatchling>=1.27"] with
+# build-backend = "hatchling.build".
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+# --- Project metadata (PEP 621; license fields per PEP 639) -------------------
+[project]
+name = "my-project"
+version = "0.1.0"
+description = "One-line description of my-project."
+readme = "README.md"
+requires-python = ">=3.14"
+# license = "MIT"                # SPDX license expression
+# license-files = ["LICENSE"]
+authors = [{ name = "Your Name", email = "you@example.com" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.scripts]
+my-project = "my_project.__main__:main"
+
+# [project.urls]
+# Repository = "https://github.com/<owner>/my-project"
+
+# --- Development dependencies (PEP 735 dependency groups) ---------------------
+# Not part of the published package. `uv sync` installs the "dev" group by
+# default; add the documentation toolchain with `--group docs`. With pip >= 25.1
+# use `pip install --group dev`. Lower bounds name feature releases rather than
+# the newest patch, so they never conflict with the cooldown in [tool.uv].
+[dependency-groups]
+dev = [
+    "mypy>=2.3",
+    "pre-commit>=4.4",
+    "pytest>=9.1",
+    "pytest-cov>=7.1",
+    "ruff>=0.16",
+]
+docs = [
+    "furo>=2025.12.19",
+    "myst-parser>=5.1",
+    "sphinx>=9.1",
+]
+
+# --- uv ------------------------------------------------------------------------
+[tool.uv]
+# Oldest uv this project supports; older versions stop with a clear error.
+# Install uv with scripts/install-uv.ps1 or scripts/install-uv.sh, and update
+# it with `uv self update`.
+required-version = ">=0.11"
+# Dependency cooldown: ignore releases younger than one week when resolving, so
+# a compromised release is usually caught and yanked before it can reach this
+# project. The cutoff is stored in uv.lock and only moves when uv resolves again
+# (e.g. `uv lock --upgrade`). A fix that cannot wait can be let through per
+# package with `exclude-newer-package`.
+exclude-newer = "1 week"
+
+# --- Ruff: linter and formatter ----------------------------------------------
+# https://docs.astral.sh/ruff/ - the target version (py314) is inferred from
+# `project.requires-python`.
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# Ruff >= 0.16 enables a curated default set of ~400 rules
+# (https://docs.astral.sh/ruff/default-rules/); extend it rather than replace it.
+extend-select = [
+    "A",   # flake8-builtins: do not shadow builtins
+    "ARG", # flake8-unused-arguments
+    "D",   # pydocstyle: docstrings, see convention below
+    "N",   # pep8-naming
+    "PT",  # flake8-pytest-style
+    "PTH", # flake8-use-pathlib: prefer pathlib over os.path
+    "S",   # flake8-bandit: security checks
+    "T20", # flake8-print: no stray print() calls
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "D1",   # docstrings are optional in tests
+    "S101", # pytest relies on plain `assert`
+    "S603", # tests run trusted, hard-coded subprocess commands
+]
+"**/__main__.py" = ["T201"] # the CLI entry point is allowed to print
+"docs/conf.py" = ["A001"] # Sphinx requires a variable named `copyright`
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf" # consistent with .gitattributes and .editorconfig
+
+# --- mypy: static type checking ----------------------------------------------
+# https://mypy.readthedocs.io/en/stable/config_file.html
+[tool.mypy]
+python_version = "3.14"
+files = ["src", "tests"]
+mypy_path = "src"
+explicit_package_bases = true # map tests/ (no __init__.py) to unique module names
+strict = true
+warn_unreachable = true
+enable_error_code = [
+    "deprecated",          # use of @warnings.deprecated APIs (PEP 702)
+    "exhaustive-match",    # `match` statements must handle every case
+    "ignore-without-code", # `# type: ignore` must name the error code
+    "possibly-undefined",
+    "redundant-expr",
+    "truthy-bool",
+    "unused-awaitable",
+]
+
+# --- pytest (native TOML configuration, pytest >= 9) --------------------------
+# https://docs.pytest.org/en/stable/reference/customize.html
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+addopts = ["-ra", "--import-mode=importlib"]
+# Strict config, markers, xfail and parametrize IDs. This also opts into the
+# strictness checks of future pytest releases - fine, as uv.lock pins pytest.
+strict = true
+# Warnings fail the test run; add targeted "ignore::..." entries when needed.
+filterwarnings = ["error"]
+
+# --- coverage.py (used by `pytest --cov`) ------------------------------------
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 90
+exclude_also = [
+    'if __name__ == .__main__.:',
+    "raise NotImplementedError",
+    '@(abc\.)?abstractmethod',
+]

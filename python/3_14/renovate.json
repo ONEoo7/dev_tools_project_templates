@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Keeps dependencies up to date on GitLab; on GitHub, Dependabot does this (see .github/dependabot.yml).",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "7 days",
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "pre-commit": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "One merge request for all non-major updates",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "non-major dependencies"
+    },
+    {
+      "description": "Update the uv CI image and the uv_build cap in pyproject.toml together",
+      "matchPackageNames": ["ghcr.io/astral-sh/uv", "uv_build", "uv-build"],
+      "groupName": "uv"
+    },
+    {
+      "description": "GHCR publishes no release timestamps, so the age check cannot apply to the uv image",
+      "matchPackageNames": ["ghcr.io/astral-sh/uv"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "Moving to a new Python version is a deliberate change across several files, not an automatic update",
+      "matchManagers": ["pyenv"],
+      "enabled": false
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "uv image version (UV_VERSION) in .gitlab-ci.yml",
+      "managerFilePatterns": ["/(^|/)\\.gitlab-ci\\.yml$/"],
+      "matchStrings": ["UV_VERSION: \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "ghcr.io/astral-sh/uv",
+      "datasourceTemplate": "docker"
+    }
+  ]
+}

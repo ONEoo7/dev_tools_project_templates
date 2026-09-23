@@ -1,0 +1,69 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+
+# Build and packaging artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+
+# Tool caches
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.tox/
+.nox/
+
+# Test, coverage and CI reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+junit*.xml
+gl-code-quality-report.json
+
+# uv cache directory used by .gitlab-ci.yml
+.uv-cache/
+
+# Sphinx build output
+docs/_build/
+
+# Environment variables and secrets (commit a sanitized .env.example instead)
+.env
+.env.*
+!.env.example
+
+# Jupyter and profiling output
+.ipynb_checkpoints/
+*.prof
+
+# IDEs and editors (shared VS Code settings may be committed)
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+*.swp
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Note: uv.lock is intentionally NOT ignored - commit it for reproducible installs.

@@ -1,0 +1,81 @@
+# GitLab CI/CD: runs the same checks as local development (see README).
+# On GitHub, delete this file and renovate.json; .github/ holds the equivalents.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # Add a weekly pipeline schedule (Build > Pipeline schedules) so the audit
+    # job catches newly disclosed vulnerabilities.
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web" # "Run pipeline" button
+
+stages:
+  - lint
+  - test
+
+variables:
+  # Astral image with uv and Python preinstalled:
+  # https://docs.astral.sh/uv/guides/integration/gitlab/
+  UV_VERSION: "0.12" # bump together with the uv_build cap in pyproject.toml
+  PYTHON_VERSION: "3.14" # keep in sync with .python-version
+  BASE_LAYER: trixie-slim
+  # The build directory is a separate mount, so uv cannot hardlink from its cache.
+  UV_LINK_MODE: copy
+  UV_CACHE_DIR: .uv-cache
+
+default:
+  image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
+  interruptible: true
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+  before_script:
+    - uv sync --locked
+  after_script:
+    - uv cache prune --ci
+
+lint:
+  stage: lint
+  script:
+    - uv run ruff format --check
+    - uv run ruff check
+    - uv run mypy
+  after_script:
+    # Show lint findings in the merge request's Code Quality widget.
+    - uv run ruff check --exit-zero --output-format=gitlab --output-file=gl-code-quality-report.json
+    - uv cache prune --ci
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+
+test:
+  stage: test
+  script:
+    - uv run pytest --cov --cov-report=term --cov-report=xml --junitxml=junit.xml
+  # Regex for pytest-cov from the GitLab docs; feeds the coverage badge and MR widget.
+  coverage: '/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      junit: junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+docs:
+  stage: test
+  script:
+    - uv run --locked --group docs sphinx-build --fail-on-warning docs docs/_build/html
+  artifacts:
+    paths:
+      - docs/_build/html
+    expire_in: 1 week
+
+audit:
+  stage: test
+  before_script: [] # uv audit reads uv.lock; no environment needed
+  script:
+    - uv audit --locked
