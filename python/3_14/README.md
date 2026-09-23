@@ -14,7 +14,9 @@ One-line description of my-project.
 >    GitLab.
 > 5. Run `uv sync` and commit the generated `uv.lock`; CI installs with
 >    `uv sync --locked`.
-> 6. Delete this note.
+> 6. Go through [`TASKS.md`](TASKS.md) and keep the additions that fit the
+>    project.
+> 7. Delete this note.
 
 ## Requirements
 
@@ -136,5 +138,6 @@ conventions; [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code.
 ├── CLAUDE.md                  Claude Code entry point; imports AGENTS.md
 ├── pyproject.toml             metadata, dependencies, tool configuration
 ├── README.md
-└── renovate.json              GitLab: weekly dependency updates (Renovate)
+├── renovate.json              GitLab: weekly dependency updates (Renovate)
+└── TASKS.md                   backlog: additions that depend on the kind of project
 ```
