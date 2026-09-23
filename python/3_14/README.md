@@ -60,6 +60,7 @@ uv run my-project Ada      # prints "Hello, Ada!"
 | Build the documentation | `uv run --group docs sphinx-build --fail-on-warning docs docs/_build/html` |
 | Audit dependencies | `uv audit` |
 | Build sdist and wheel | `uv build` |
+| Build installers and portable archive | `uv run installers/build.py` |
 
 All tool settings live in [`pyproject.toml`](pyproject.toml). CI runs the same
 checks: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions,
@@ -96,13 +97,49 @@ conventions; [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code.
 4. Build the distributions with `uv build`; publish them with `uv publish` if the
    project is released to a package index.
 
+## Installers
+
+[`installers/build.py`](installers/build.py) builds native installers and a
+portable archive for the operating system it runs on. It freezes the CLI with
+[PyInstaller](https://pyinstaller.org) into a folder that bundles its own Python,
+then packages that folder into `dist/`:
+
+| Platform | Installer | Portable archive | Also needs |
+| --- | --- | --- | --- |
+| Windows | `my-project-<version>-windows-x64-setup.exe`: NSIS, per-user, adds the tool to `PATH` | `my-project-<version>-windows-x64-portable.zip` | [NSIS](https://nsis.sourceforge.io): `winget install NSIS.NSIS` |
+| Linux | `my-project_<version>_amd64.deb` and `my-project-<version>-1.x86_64.rpm` | `my-project-<version>-linux-x86_64-portable.tar.gz` | [nFPM](https://nfpm.goreleaser.com/docs/install/) and binutils |
+| macOS | `my-project-<version>-macos-arm64.dmg` | `my-project-<version>-macos-arm64-portable.tar.gz` | nothing; `hdiutil` ships with macOS |
+
+```bash
+uv run installers/build.py
+```
+
+The portable archives need no installation or administrator rights: extract
+them anywhere, for example onto a USB stick, and run `my-project/my-project`
+(`my-project\my-project.exe` on Windows).
+
+PyInstaller always runs on a uv-managed CPython, so the Linux packages work on
+any distribution with glibc 2.17 or newer. Installers target the architecture
+of the machine that builds them.
+
+CI builds them for version tags (`v*`) and on demand: GitHub Actions
+([`installers.yml`](.github/workflows/installers.yml)) builds everything for all
+three platforms and attaches it to a draft release; GitLab CI/CD builds the
+Linux packages and portable archive.
+
+Nothing is code-signed yet (see [`TASKS.md`](TASKS.md)). Windows SmartScreen and
+macOS Gatekeeper warn about the installers and portable builds, and Windows
+computers that enforce Smart App Control refuse to run them.
+
 ## Project layout
 
 ```text
 .
 ├── .github/
 │   ├── dependabot.yml         GitHub: weekly dependency updates
-│   └── workflows/ci.yml       GitHub Actions: lint, type-check, tests, docs, audit
+│   └── workflows/
+│       ├── ci.yml             GitHub Actions: lint, type-check, tests, docs, audit
+│       └── installers.yml     GitHub Actions: installers for version tags
 ├── .vscode/                   recommended extensions and workspace settings
 ├── design/                    engineering design documentation
 │   ├── architecture.md        architecture overview (arc42-lite)
@@ -114,6 +151,11 @@ conventions; [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code.
 │   ├── usage.md               installation and usage
 │   ├── api.md                 API reference generated from docstrings
 │   └── changelog.md           includes CHANGELOG.md
+├── installers/                native installers (see "Installers")
+│   ├── build.py               freezes the CLI; builds this OS's installers and portable archive
+│   ├── linux/nfpm.yaml        .deb and .rpm package definition
+│   ├── macos/README.txt       instructions shipped inside the .dmg
+│   └── windows/installer.nsi  NSIS installer script (edits PATH itself, runs no scripts)
 ├── scripts/
 │   ├── install-uv.ps1         installs uv on Windows
 │   └── install-uv.sh          installs uv on Linux and macOS

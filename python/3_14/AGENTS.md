@@ -12,6 +12,8 @@ start with [README.md](README.md).
 - `tests/unit/` (fast, isolated) and `tests/integration/` (subprocesses, files);
   pytest, no `__init__.py` files in `tests/`.
 - `docs/`: user documentation, Sphinx with MyST Markdown.
+- `installers/`: native installers (NSIS, .deb/.rpm, .dmg) and portable
+  archives (.zip/.tar.gz), built by `installers/build.py`.
 - `design/`: architecture overview and architecture decision records (ADRs).
 
 ## Commands
@@ -27,6 +29,7 @@ Run every tool through uv so the versions locked in `uv.lock` are used.
 | Test | `uv run pytest` |
 | Build the documentation | `uv run --group docs sphinx-build --fail-on-warning docs docs/_build/html` |
 | All pre-commit hooks | `uv run pre-commit run --all-files` |
+| Build the installers and portable archive for this OS | `uv run installers/build.py` |
 
 A change is complete when formatting, linting, type-checking, the tests, and the
 documentation build all pass.

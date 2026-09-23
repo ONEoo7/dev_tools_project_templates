@@ -28,6 +28,7 @@ specifications and the PEPs they come from.
 | Local checks | pre-commit: file hygiene, schema checks for CI files, and ruff and mypy via `uv run` | pre-commit |
 | Dependency updates | Dependabot (GitHub) or Renovate (GitLab), weekly and grouped | Dependabot, Renovate docs |
 | Supply-chain security | One-week cooldown (`exclude-newer`), `uv audit` in CI, GitHub Actions pinned to commit SHAs | uv docs; GitHub security hardening guide |
+| Native installers and portable builds | PyInstaller on a uv-managed CPython, packaged with NSIS (Windows), nFPM `.deb`/`.rpm` (Linux) and `hdiutil` `.dmg` (macOS), plus a portable `.zip`/`.tar.gz` per platform | PyInstaller, NSIS and nFPM docs |
 
 ## Alternatives considered
 

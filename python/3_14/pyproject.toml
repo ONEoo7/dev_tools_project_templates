@@ -53,6 +53,9 @@ docs = [
     "myst-parser>=5.1",
     "sphinx>=9.1",
 ]
+installers = [
+    "pyinstaller>=6.22",
+]
 
 # --- uv ------------------------------------------------------------------------
 [tool.uv]
@@ -95,6 +98,10 @@ extend-select = [
 ]
 "**/__main__.py" = ["T201"] # the CLI entry point is allowed to print
 "docs/conf.py" = ["A001"] # Sphinx requires a variable named `copyright`
+"installers/*.py" = [
+    "S603", # the build script runs trusted tools (uv, PyInstaller, NSIS, nFPM)
+    "T201", # and prints its progress
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -107,7 +114,7 @@ line-ending = "lf" # consistent with .gitattributes and .editorconfig
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
 python_version = "3.14"
-files = ["src", "tests"]
+files = ["src", "tests", "installers"]
 mypy_path = "src"
 explicit_package_bases = true # map tests/ (no __init__.py) to unique module names
 strict = true

@@ -47,9 +47,23 @@ ones that apply and delete the rest.
 - [ ] [ty](https://docs.astral.sh/ty/), Astral's type checker (still beta), as a
   faster second checker next to mypy; it runs through `uv check`.
 
+## Installers
+
+- [ ] Code signing: Authenticode for the Windows installer (for example with
+  Azure Trusted Signing), and a Developer ID signature plus notarization on
+  macOS. Unsigned builds trigger SmartScreen and Gatekeeper warnings, and
+  Windows computers that enforce Smart App Control block them outright.
+- [ ] macOS builds for Intel Macs, or universal2 builds (CI builds arm64 only).
+- [ ] Linux packages for arm64, for example on GitHub's `ubuntu-24.04-arm`
+  runners.
+- [ ] GitLab CI/CD: Windows and macOS installer jobs (they need Windows and
+  macOS runners), and attaching the installers to GitLab releases.
+- [ ] Map PEP 440 pre-releases such as `1.0rc1` to versions that sort correctly
+  in dpkg and rpm (`1.0~rc1`).
+
 ## Other open items
 
 - [ ] Add Python 3.15 to the CI test matrix once it is released (scheduled for
   2026-10-01); `requires-python = ">=3.14"` already claims support for it.
-- [ ] Try `scripts/install-uv.sh` on macOS; so far it has been tested on Linux
-  only.
+- [ ] Try the macOS parts on a Mac: `scripts/install-uv.sh` has only been tested
+  on Linux, and the `.dmg` build will first run in GitHub Actions.

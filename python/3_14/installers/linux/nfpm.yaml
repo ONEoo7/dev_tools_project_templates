@@ -1,0 +1,21 @@
+# nFPM configuration for the .deb and .rpm packages (https://nfpm.goreleaser.com).
+# installers/build.py provides the ${...} values as environment variables.
+name: my-project
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: ${MAINTAINER}
+description: ${DESCRIPTION}
+
+contents:
+  # The self-contained PyInstaller bundle, including its own Python runtime.
+  - src: ${BUNDLE_DIR}
+    dst: /opt/my-project
+    type: tree
+    expand: true
+  # Put the command on PATH.
+  - src: /opt/my-project/my-project
+    dst: /usr/bin/my-project
+    type: symlink
